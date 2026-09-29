@@ -3,7 +3,7 @@ const SHELL = "yako-shell-v2";
 const DATA = "yako-data-v1";
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(SHELL).then((c) => c.addAll(["/", "/icons/icon.svg"])));
+  e.waitUntil(caches.open(SHELL).then((c) => c.addAll(["/", "/icons/icon-192.png"])));
   self.skipWaiting();
 });
 

@@ -1,6 +1,6 @@
 -- Yako Pharma — schéma PostgreSQL + PostGIS (Couche 1)
-CREATE EXTENSION IF NOT EXISTS postgis;
-CREATE EXTENSION IF NOT EXISTS unaccent;
+CREATE EXTENSION IF NOT EXISTS postgis SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS unaccent SCHEMA public;
 
 -- Recherche insensible aux accents/casse ("Adjame" trouve "Adjamé").
 CREATE OR REPLACE FUNCTION unaccent_lower(t text) RETURNS text

@@ -33,7 +33,13 @@ Colonnes `garde.csv` : `name,commune,garde_start,garde_end,source_document` (dat
 
 ## PWA
 Manifeste + `public/sw.js` (actif en production : `npm run build && npm start`) — cache de l'app, des dernières réponses API et des tuiles vues.
-À faire avant Android : icônes PNG 192/512 (seule une icône SVG existe).
+Icônes PNG 192/512/180 générées par `node scripts/make-icons.mjs` (à remplacer par un vrai logo quand il existera).
 
-## Déploiement
-Vercel (frontend + API) + Supabase/Railway (Postgres). Variables : `DATABASE_URL`, `ADMIN_TOKEN`.
+## Déploiement (Supabase + Vercel)
+1. **Supabase** : nouveau projet (région Europe la plus proche). *Database → Connection string → Transaction pooler* (port 6543) : c'est ton `DATABASE_URL` (ajoute `?sslmode=no-verify`).
+2. En local, mets ce `DATABASE_URL` dans `.env`, puis `npm run db:migrate` et `npm run db:import`.
+3. **Vercel** : *Add New → Project* → importer `Komputus/yakopharma`. Variables d'environnement : `DATABASE_URL`, `ADMIN_TOKEN` (long et aléatoire). Déployer.
+4. Domaine : ajouter `yakopharma.com` / `.ci` dans *Vercel → Settings → Domains*.
+5. Test réel : téléphone en 3G, installer la PWA (« Ajouter à l'écran d'accueil »).
+
+Schéma testé sur un moteur Postgres + PostGIS embarqué (PGlite) : création, upsert d'import, recherche par distance/commune sans accents, garde active et clôture.
