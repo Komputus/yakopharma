@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPharmacy } from "@/lib/store";
 import { GardeBadge } from "@/components/PharmacyList";
+import { TrackedLink, ViewTracker } from "@/components/Track";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,7 @@ export default async function Fiche({ params }: { params: Promise<{ id: string }
 
   return (
     <main className="mx-auto max-w-lg p-4">
+      <ViewTracker id={p.id} />
       <Link href="/" className="text-sm text-yako-600 underline">
         ← Retour
       </Link>
@@ -42,18 +44,20 @@ export default async function Fiche({ params }: { params: Promise<{ id: string }
       </dl>
       <div className="mt-4 flex gap-2">
         {p.phone && (
-          <a href={`tel:${p.phone.replace(/\s/g, "")}`} className="flex-1 rounded-lg bg-corail-500 py-3 text-center font-medium text-white">
+          <TrackedLink pharmacyId={p.id} event="appel" href={`tel:${p.phone.replace(/\s/g, "")}`} className="flex-1 rounded-lg bg-corail-500 py-3 text-center font-medium text-white">
             Appeler
-          </a>
+          </TrackedLink>
         )}
-        <a
+        <TrackedLink
+          pharmacyId={p.id}
+          event="itineraire"
           href={`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`}
           target="_blank"
           rel="noreferrer"
           className="flex-1 rounded-lg bg-yako-600 py-3 text-center font-medium text-white"
         >
           Itinéraire
-        </a>
+        </TrackedLink>
       </div>
       <Link href={`/signaler?pharmacy=${p.id}`} className="mt-6 block text-center text-sm text-gray-600 underline">
         Une information est incorrecte ? Signaler

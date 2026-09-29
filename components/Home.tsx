@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { COMMUNES, type Pharmacy } from "@/lib/types";
 import { ABIDJAN_CENTER } from "@/lib/geo";
 import PharmacyList, { GardeBadge } from "./PharmacyList";
+import { track } from "@/lib/track";
 
 const PharmacyMap = dynamic(() => import("./PharmacyMap"), {
   ssr: false,
@@ -74,7 +75,10 @@ export default function Home() {
 
   // En recherche, la carte se centre sur le premier résultat ; sinon sur l'utilisateur.
   const mapCenter = searching && items[0] ? { lat: items[0].lat, lng: items[0].lng } : origin;
-  const onSelect = useCallback((p: Pharmacy) => setSelected(p), []);
+  const onSelect = useCallback((p: Pharmacy) => {
+    setSelected(p);
+    track(p.id, "vue");
+  }, []);
 
   return (
     <main className="relative flex h-dvh flex-col">
@@ -157,13 +161,14 @@ export default function Home() {
             {selected.distance_km !== undefined && ` · ${selected.distance_km.toFixed(1)} km`}
           </p>
           <div className="mt-3 flex gap-2">
-            <a href={`tel:${selected.phone.replace(/\s/g, "")}`} className="flex-1 rounded-lg bg-corail-500 py-2 text-center font-medium text-white">
+            <a href={`tel:${selected.phone.replace(/\s/g, "")}`} onClick={() => track(selected.id, "appel")} className="flex-1 rounded-lg bg-corail-500 py-2 text-center font-medium text-white">
               Appeler
             </a>
             <a
               href={`https://www.google.com/maps/dir/?api=1&destination=${selected.lat},${selected.lng}`}
               target="_blank"
               rel="noreferrer"
+              onClick={() => track(selected.id, "itineraire")}
               className="flex-1 rounded-lg bg-yako-600 py-2 text-center font-medium text-white"
             >
               Itinéraire

@@ -8,10 +8,11 @@ export type LocalState = {
   access: Record<string, number>; // code_hash -> pharmacy_id
   overrides: Record<string, { phone?: string; opening_hours?: string; address?: string; garde_off?: boolean }>;
   gardes: LocalGarde[];
+  stats: Record<string, number>; // id|YYYY-MM-DD|event -> compteur
 };
 
 const FILE = path.join(process.cwd(), "data", "portal.local.json");
-const empty = (): LocalState => ({ access: {}, overrides: {}, gardes: [] });
+const empty = (): LocalState => ({ access: {}, overrides: {}, gardes: [], stats: {} });
 
 export async function readLocalState(): Promise<LocalState> {
   try {

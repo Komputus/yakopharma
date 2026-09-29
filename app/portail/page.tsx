@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import type { Pharmacy } from "@/lib/types";
-import type { PortalGarde } from "@/lib/portal";
+import type { PharmacyStats, PortalGarde } from "@/lib/portal";
 
 const fmt = (iso: string) => new Date(iso).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
 const inputCls = "mt-1 w-full rounded border border-gray-300 p-2";
@@ -10,6 +10,7 @@ const inputCls = "mt-1 w-full rounded border border-gray-300 p-2";
 export default function Portail() {
   const [me, setMe] = useState<{ pharmacy: Pharmacy; gardes: PortalGarde[] } | null>(null);
   const [checked, setChecked] = useState(false);
+  const [stats, setStats] = useState<PharmacyStats | null>(null);
   const [code, setCode] = useState("");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [info, setInfo] = useState({ phone: "", opening_hours: "", address: "" });
@@ -22,6 +23,7 @@ export default function Portail() {
       const d = await r.json();
       setMe(d);
       setInfo({ phone: d.pharmacy.phone ?? "", opening_hours: d.pharmacy.opening_hours ?? "", address: d.pharmacy.address ?? "" });
+      fetch("/api/portail/stats", { cache: "no-store" }).then((x) => (x.ok ? x.json() : null)).then(setStats).catch(() => {});
     } else setMe(null);
     setChecked(true);
   }, []);
@@ -100,6 +102,29 @@ export default function Portail() {
       </div>
 
       {msg && <p className={`rounded p-2 text-sm ${msg.ok ? "bg-yako-50 text-yako-700" : "bg-red-50 text-red-700"}`}>{msg.text}</p>}
+
+      {stats && (
+        <section>
+          <h2 className="font-semibold">Ma visibilité</h2>
+          <p className="text-xs text-gray-500">Compteurs anonymes, sans aucune donnée sur les visiteurs.</p>
+          <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+            {([["vue", "Fiches vues"], ["appel", "Appels"], ["itineraire", "Itinéraires"]] as const).map(([k, label]) => (
+              <div key={k} className="rounded-lg border bg-white p-2">
+                <p className="text-2xl font-semibold text-yako-700">{stats.totals30[k]}</p>
+                <p className="text-xs text-gray-600">{label}</p>
+                <p className="text-[11px] text-gray-400">{stats.totals7[k]} sur 7 j</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-1 text-right text-[11px] text-gray-400">30 derniers jours</p>
+          <div className="mt-2 flex h-16 items-end gap-1" role="img" aria-label="Fiches vues par jour, 14 derniers jours">
+            {stats.daily.map((d) => {
+              const max = Math.max(1, ...stats.daily.map((x) => x.vue));
+              return <div key={d.day} title={`${d.day} : ${d.vue} vue(s)`} className="flex-1 rounded-t bg-yako-500" style={{ height: `${Math.max(4, (d.vue / max) * 100)}%`, opacity: d.vue ? 1 : 0.25 }} />;
+            })}
+          </div>
+        </section>
+      )}
 
       <section>
         <h2 className="font-semibold">Mes informations</h2>

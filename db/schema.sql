@@ -60,6 +60,15 @@ CREATE TABLE pharmacy_access (
   last_login_at TIMESTAMPTZ
 );
 
+-- Statistiques de visibilité : simples compteurs par jour, AUCUNE donnée sur l'utilisateur (ni IP, ni identifiant).
+CREATE TABLE pharmacy_stat (
+  pharmacy_id BIGINT NOT NULL REFERENCES pharmacy(id) ON DELETE CASCADE,
+  day         DATE   NOT NULL,
+  event       TEXT   NOT NULL CHECK (event IN ('vue', 'appel', 'itineraire')),
+  count       INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (pharmacy_id, day, event)
+);
+
 -- Signalements communautaires : jamais publiés automatiquement (file de modération).
 CREATE TABLE user_report (
   id          BIGSERIAL PRIMARY KEY,

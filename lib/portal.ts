@@ -158,3 +158,63 @@ export async function moderateGarde(id: number, approve: boolean): Promise<boole
   await writeLocalState(s);
   return true;
 }
+
+// ---------- Statistiques de visibilité ----------
+export const STAT_EVENTS = ["vue", "appel", "itineraire"] as const;
+export type StatEvent = (typeof STAT_EVENTS)[number];
+export type DayStats = { day: string } & Record<StatEvent, number>;
+export type PharmacyStats = { totals30: Record<StatEvent, number>; totals7: Record<StatEvent, number>; daily: DayStats[] };
+
+const dayKey = (d: Date) => d.toISOString().slice(0, 10);
+
+/** Incrémente un compteur anonyme (pharmacie, jour, type). Ignore silencieusement une pharmacie inconnue. */
+export async function recordStat(pharmacyId: number, event: StatEvent) {
+  const day = dayKey(new Date());
+  if (pool) {
+    try {
+      await pool.query(
+        `INSERT INTO pharmacy_stat (pharmacy_id, day, event, count) VALUES ($1,$2,$3,1)
+         ON CONFLICT (pharmacy_id, day, event) DO UPDATE SET count = pharmacy_stat.count + 1`,
+        [pharmacyId, day, event]
+      );
+    } catch (e: any) {
+      if (e.code !== "23503") throw e; // 23503 = pharmacie inexistante
+    }
+    return;
+  }
+  if (!MOCK_PHARMACIES.some((p) => p.id === pharmacyId)) return;
+  const s = await readLocalState();
+  const k = `${pharmacyId}|${day}|${event}`;
+  s.stats[k] = (s.stats[k] ?? 0) + 1;
+  await writeLocalState(s);
+}
+
+export async function getStats(pharmacyId: number): Promise<PharmacyStats> {
+  const days: string[] = Array.from({ length: 30 }, (_, i) => dayKey(new Date(Date.now() - i * 864e5))); // récent -> ancien
+  const byDay: Record<string, Record<StatEvent, number>> = Object.fromEntries(days.map((d) => [d, { vue: 0, appel: 0, itineraire: 0 }]));
+
+  if (pool) {
+    const { rows } = await pool.query(
+      "SELECT to_char(day,'YYYY-MM-DD') AS day, event, count FROM pharmacy_stat WHERE pharmacy_id=$1 AND day >= $2",
+      [pharmacyId, days[29]]
+    );
+    for (const r of rows) if (byDay[r.day]) byDay[r.day][r.event as StatEvent] = r.count;
+  } else {
+    const { stats } = await readLocalState();
+    for (const [k, n] of Object.entries(stats)) {
+      const [id, day, ev] = k.split("|");
+      if (Number(id) === pharmacyId && byDay[day]) byDay[day][ev as StatEvent] = n;
+    }
+  }
+
+  const sum = (n: number) => {
+    const t = { vue: 0, appel: 0, itineraire: 0 };
+    for (const d of days.slice(0, n)) for (const e of STAT_EVENTS) t[e] += byDay[d][e];
+    return t;
+  };
+  return {
+    totals30: sum(30),
+    totals7: sum(7),
+    daily: days.slice(0, 14).reverse().map((d) => ({ day: d, ...byDay[d] })),
+  };
+}

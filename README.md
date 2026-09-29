@@ -38,6 +38,12 @@ Colonnes `garde.csv` : `name,commune,garde_start,garde_end,source_document` (dat
 3. Téléphone, horaires, adresse : publiés immédiatement. **Garde déclarée : jamais publiée automatiquement** — elle reste « en attente » jusqu'à *Approuver* dans l'admin (les listes officielles restent prioritaires). « Terminer ma garde » agit tout de suite.
 Connexion par SMS/OTP : non incluse (coût + fournisseur SMS) ; à ajouter avec les alertes premium.
 
+## Statistiques de visibilité (portail)
+Chaque pharmacie voit, sur 30 jours : fiches vues, appels et itinéraires cliqués (+ courbe des 14 derniers jours).
+- **Anonyme par conception** : la table `pharmacy_stat` ne stocke que (pharmacie, jour, type, compteur) — ni IP, ni identifiant, ni position.
+- Les robots d'indexation sont ignorés ; un même visiteur ne peut pas gonfler les chiffres au-delà de 20 événements / 10 min / pharmacie.
+- C'est l'argument de vente B2B : « votre fiche a été vue X fois ce mois ». Un rapport mensuel envoyé aux pharmacies pourra s'appuyer sur ces mêmes données.
+
 ## PWA
 Manifeste + `public/sw.js` (actif en production : `npm run build && npm start`) — cache de l'app, des dernières réponses API et des tuiles vues.
 Icônes PNG 192/512/180 générées par `node scripts/make-icons.mjs` (à remplacer par un vrai logo quand il existera).
