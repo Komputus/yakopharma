@@ -1,0 +1,3 @@
+name,address,commune,quartier,lat,lng,phone,opening_hours,source,verified
+Pharmacie EXEMPLE 1,Boulevard Latrille,Cocody,Angré,5.3963,-3.9977,+225 27 00 00 00 02,08h-20h,manuel,non
+Pharmacie EXEMPLE 2,Avenue 16,Treichville,Arras,,,+225 27 00 00 00 05,24h/24,manuel,non

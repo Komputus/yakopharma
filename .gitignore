@@ -1,0 +1,8 @@
+node_modules
+.next
+.env*
+!.env.example
+next-env.d.ts
+*.tsbuildinfo
+data/reports.local.json
+data/geocode-cache.json

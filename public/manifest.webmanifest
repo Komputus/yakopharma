@@ -1,0 +1,13 @@
+{
+  "name": "Yako Pharma",
+  "short_name": "Yako Pharma",
+  "description": "Pharmacies et pharmacies de garde en Côte d'Ivoire",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6faf7",
+  "theme_color": "#237a49",
+  "lang": "fr",
+  "icons": [
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
