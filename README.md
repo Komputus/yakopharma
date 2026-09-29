@@ -7,7 +7,8 @@ Localisation uniquement : aucune commande, ordonnance ni donnée de santé.
 - `/` — carte (Leaflet/OSM) ou liste triée par distance ; filtre « de garde » ; recherche par commune / quartier / nom (insensible aux accents)
 - `/pharmacie/[id]` — fiche : horaires, statut de garde, Appeler, Itinéraire
 - `/signaler` — signalement communautaire (toujours « en attente »)
-- `/admin` — modération (jeton `ADMIN_TOKEN`)
+- `/admin` — signalements, gardes déclarées, génération des codes d'accès (jeton `ADMIN_TOKEN`)
+- `/portail` — espace pharmacie (code d'accès) : modifier téléphone/horaires/adresse, déclarer ou terminer une garde
 
 ## Lancer en local (sans base de données)
     npm install
@@ -30,6 +31,12 @@ Colonnes `garde.csv` : `name,commune,garde_start,garde_end,source_document` (dat
 ## Modération
 - `en_attente` → « Vérifier » ou « Rejeter ». Rien n'est publié automatiquement.
 - Seul « N'est plus de garde » agit à la vérification (clôt la garde en cours). Fermée / horaires / nouvelle pharmacie : correction manuelle en base ou via un nouvel import.
+
+## Portail pharmacie
+1. Admin → onglet *Accès pharmacies* → chercher la pharmacie → *Générer un code* (format `XXXXX-XXXXX`, affiché une seule fois, stocké haché). Le transmettre à la pharmacie ; en régénérer un invalide l'ancien.
+2. La pharmacie se connecte sur `/portail` (session 7 jours, cookie signé `SESSION_SECRET`, 10 essais / 10 min / IP).
+3. Téléphone, horaires, adresse : publiés immédiatement. **Garde déclarée : jamais publiée automatiquement** — elle reste « en attente » jusqu'à *Approuver* dans l'admin (les listes officielles restent prioritaires). « Terminer ma garde » agit tout de suite.
+Connexion par SMS/OTP : non incluse (coût + fournisseur SMS) ; à ajouter avec les alertes premium.
 
 ## PWA
 Manifeste + `public/sw.js` (actif en production : `npm run build && npm start`) — cache de l'app, des dernières réponses API et des tuiles vues.

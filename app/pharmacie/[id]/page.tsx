@@ -58,6 +58,9 @@ export default async function Fiche({ params }: { params: Promise<{ id: string }
       <Link href={`/signaler?pharmacy=${p.id}`} className="mt-6 block text-center text-sm text-gray-600 underline">
         Une information est incorrecte ? Signaler
       </Link>
+      <Link href="/portail" className="mt-2 block text-center text-xs text-gray-400 underline">
+        Vous êtes cette pharmacie ? Espace pharmacie
+      </Link>
     </main>
   );
 }

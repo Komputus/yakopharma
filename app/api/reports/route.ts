@@ -1,20 +1,11 @@
 import { NextResponse } from "next/server";
 import { createReport, getPharmacy } from "@/lib/store";
+import { clientIp, rateLimited } from "@/lib/ratelimit";
 import { REPORT_TYPES, type ReportType } from "@/lib/types";
 
-// Anti-abus simple (mémoire du process) : 5 signalements / 10 min / IP.
-const hits = new Map<string, number[]>();
-function limited(ip: string) {
-  const now = Date.now();
-  const recent = (hits.get(ip) ?? []).filter((t) => now - t < 600_000);
-  recent.push(now);
-  hits.set(ip, recent);
-  return recent.length > 5;
-}
-
 export async function POST(req: Request) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "local";
-  if (limited(ip)) return NextResponse.json({ error: "Trop de signalements, réessayez plus tard." }, { status: 429 });
+  // 5 signalements / 10 min / IP.
+  if (rateLimited("report:" + clientIp(req), 5)) return NextResponse.json({ error: "Trop de signalements, réessayez plus tard." }, { status: 429 });
 
   let body: any;
   try {

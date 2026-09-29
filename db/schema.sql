@@ -36,6 +36,8 @@ CREATE TABLE garde_schedule (
   garde_start     TIMESTAMPTZ NOT NULL,
   garde_end       TIMESTAMPTZ NOT NULL CHECK (garde_end > garde_start),
   source_document TEXT,
+  -- Garde déclarée par la pharmacie : approved=false tant qu'un admin ne l'a pas validée.
+  approved        BOOLEAN NOT NULL DEFAULT TRUE,
   imported_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (pharmacy_id, garde_start)
 );
@@ -46,9 +48,17 @@ CREATE VIEW pharmacy_with_garde AS
 SELECT p.*,
        EXISTS (
          SELECT 1 FROM garde_schedule g
-         WHERE g.pharmacy_id = p.id AND now() BETWEEN g.garde_start AND g.garde_end
+         WHERE g.pharmacy_id = p.id AND g.approved AND now() BETWEEN g.garde_start AND g.garde_end
        ) AS is_garde_active
 FROM pharmacy p;
+
+-- Accès du portail pharmacie : code généré par un admin, stocké haché (SHA-256), affiché une seule fois.
+CREATE TABLE pharmacy_access (
+  pharmacy_id   BIGINT PRIMARY KEY REFERENCES pharmacy(id) ON DELETE CASCADE,
+  code_hash     TEXT NOT NULL UNIQUE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_login_at TIMESTAMPTZ
+);
 
 -- Signalements communautaires : jamais publiés automatiquement (file de modération).
 CREATE TABLE user_report (

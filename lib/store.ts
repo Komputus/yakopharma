@@ -3,10 +3,11 @@ import path from "path";
 import { Pool } from "pg";
 import { haversineKm } from "./geo";
 import { MOCK_PHARMACIES } from "./mock-data";
+import { applyLocal, readLocalState } from "./local";
 import type { Pharmacy, ReportStatus, ReportType, SearchParams, UserReport } from "./types";
 
 // Deux backends : PostGIS si DATABASE_URL est défini, sinon données fictives + fichier local (dev).
-const pool: Pool | null = process.env.DATABASE_URL
+export const pool: Pool | null = process.env.DATABASE_URL
   ? ((globalThis as any).__yakoPool ??= new Pool({ connectionString: process.env.DATABASE_URL, max: 5 }))
   : null;
 
@@ -31,7 +32,9 @@ export async function searchPharmacies(p: SearchParams): Promise<Pharmacy[]> {
     );
     return rows;
   }
-  return MOCK_PHARMACIES.filter((x) => !p.garde || x.is_garde_active)
+  const local = await readLocalState();
+  return MOCK_PHARMACIES.map((x) => applyLocal(x, local))
+    .filter((x) => !p.garde || x.is_garde_active)
     .filter((x) => !p.commune || norm(x.commune) === norm(p.commune))
     .filter((x) => !p.q || norm(`${x.name} ${x.quartier} ${x.commune}`).includes(norm(p.q)))
     .map((x) => ({ ...x, distance_km: haversineKm(p.lat, p.lng, x.lat, x.lng) }))
@@ -43,7 +46,8 @@ export async function getPharmacy(id: number): Promise<Pharmacy | null> {
     const { rows } = await pool.query(`SELECT ${PHARMACY_COLS} FROM pharmacy_with_garde WHERE id = $1`, [id]);
     return rows[0] ?? null;
   }
-  return MOCK_PHARMACIES.find((x) => x.id === id) ?? null;
+  const m = MOCK_PHARMACIES.find((x) => x.id === id);
+  return m ? applyLocal(m, await readLocalState()) : null;
 }
 
 // ---------- Signalements ----------

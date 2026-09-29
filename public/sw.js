@@ -18,7 +18,7 @@ self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
-  if (url.pathname.startsWith("/api/admin")) return; // jamais de cache pour l'admin
+  if (url.pathname.startsWith("/api/admin") || url.pathname.startsWith("/api/portail")) return; // jamais de cache
 
   // API + tuiles OSM : réseau d'abord, repli sur le cache (connexion faible).
   if (url.pathname.startsWith("/api/") || url.hostname.endsWith("tile.openstreetmap.org")) {
